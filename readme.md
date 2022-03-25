@@ -22,12 +22,50 @@ const bot = createBot({
 bot.start()
 ```
 
-- 创建插件
+- 创建插件并使用
 ```javascript
-
+class Setu extends BasePlugin {
+    orderKeys=["setu"]
+    onOrder(e) {
+        e.reply("不准色色")
+    }
+}
+const bot = createBot({
+    qq: 1287299719,
+    managers: [548481661],
+    dataPath: "botData/" + 1287299719
+})
+bot.use(new Setu())
+bot.start()
 ```
 
-目前已搭载插件：
+## 指令细分
+
+```javascript
+class Setu extends BasePlugin {
+
+    setu = ["setu"]
+    noSetu = ["noSetu"]
+    orderKeys = [...this.setu, ...this.noSetu]
+    orders = [
+        this.onSetu.bind(this),
+        this.onNoSetu.bind(this)
+    ]
+    onSetu(e) {
+        // 在此判断指令触发语句条件或其他条件
+        if (this.triggerKey(e.raw_message, this.setu)) {
+            return e.reply("不准色色")
+        }
+    }
+    onNoSetu(e) {
+        if (this.triggerKey(e.raw_message, this.noSetu)) {
+            return e.reply("好")
+        }
+    }
+}
+```
+
+## 目前已搭载插件
 1. 值班提醒bot
 2. 消息转发bot
 3. 点赞bot
