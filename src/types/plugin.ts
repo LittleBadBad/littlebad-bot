@@ -1,6 +1,7 @@
 import {DiscussMessageEvent, GroupMessageEvent, PrivateMessageEvent} from "oicq/lib/events";
 import {GuildMessageEvent} from "oicq/lib/internal/guild";
 import {Client} from "oicq";
+import path from "path";
 
 interface Plugin {
     onStart()
@@ -11,15 +12,27 @@ interface Plugin {
 }
 
 export class BasePlugin implements Plugin {
-    client: Client
-    managers: number[]
+    client: Client;
+
+    /**
+     * 本插件的管理员列表
+     */
+    managers: number[] = []
+
+    /**
+     * 定义新插件时此项建议定义
+     */
     name: string = "BasePlugin"
-    dataPath: string = this.name
+
+    /**
+     * 本插件的文件路径，默认在安装后，值为${主机器人的文件路径}/${本插件的名字}
+     */
+    dataPath: string = ""
 
     /**
      * 本插件所包含的全部命令关键词
      */
-    orderKeys = []
+    orderKeys: string[] = []
 
     /**
      * 本插件各类命令的函数列表，调用方法详见onOrder
@@ -28,15 +41,17 @@ export class BasePlugin implements Plugin {
     orders: ((e, ...others) => any)[] = []
 
     /**
-     * 判断是否触发本插件命令关键词
+     * 判断是否触发本插件命令关键词 默认对全部的orderKeys执行triggerKey，可在此重载，附加对指令的来源以及发送人等信息的判断
+     * @see orderKeys
+     * @see triggerKey
      * @param e
      */
-    isOrder(e: PrivateMessageEvent | GroupMessageEvent | any) {
-        return this.orderKeys.find(v => e.raw_message.toLowerCase().indexOf(v) > -1)
+    isOrder(e: PrivateMessageEvent | GroupMessageEvent | any): any {
+        return this.triggerKey(e.raw_message, this.orderKeys)
     }
 
     /**
-     * 检测是否触发某条命令快捷函数
+     * 检测是否触发某条命令快捷函数，默认检测本语句的字符串中是否包含命令子串
      * @param raw 消息的文字内容
      * @param keyList 命令列表
      */
@@ -45,19 +60,21 @@ export class BasePlugin implements Plugin {
     }
 
     /**
-     * 插件安装时响应
-     * @param client
-     * @param managers
-     * @param dataPath
+     * 插件安装时响应，由于插件是先构建后安装，安装后才可获得主机器人内的相关参数，可在此添加插件安装时的响应函数
+     * @param client client对象
+     * @param managers 机器人管理员
+     * @param dataPath 文件路径
      */
     onInstall(client: Client, managers, dataPath) {
         this.client = client
         this.managers = managers
-        this.dataPath = dataPath
+        this.dataPath = path.join(dataPath, this.name)
     }
 
     /**
-     * 接收到的消息触发命令时响应，可以在此处理全部命令，也可以在orders里分别定义
+     * 接收到的消息触发命令时响应，默认执行orders里的全部函数，
+     * 可以在orders里分别定义，也可以重载此函数
+     * @see orders
      * @param e
      */
     async onOrder(e: PrivateMessageEvent | GroupMessageEvent | GuildMessageEvent): Promise<any> {

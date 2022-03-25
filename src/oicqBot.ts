@@ -16,7 +16,7 @@ export default class oicqBot {
     use(plugin: BasePlugin) {
         plugin.onInstall(this.client,
             this.config.managers,
-            path.join(this.config.dataPath, plugin.name))
+            this.config.dataPath)
         this.plugins.push(plugin)
     }
 

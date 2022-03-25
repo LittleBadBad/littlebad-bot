@@ -10,7 +10,7 @@ import * as path from "path";
 const ENV = process.env.NODE_ENV;
 const extensions = ['.ts', '.js'];
 const external = ['oicq','axios','node-schedule','qq-guild-bot'];
-const outRoot = "build"
+const outRoot = "dist"
 const outFile = (target) => path.join(outRoot, target)
 
 export default [

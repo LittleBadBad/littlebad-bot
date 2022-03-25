@@ -14,3 +14,7 @@ lib/**/*.js
 ../*
 index.ts
 main.js
+lib
+es
+typings
+dist

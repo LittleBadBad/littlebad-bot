@@ -1,8 +1,22 @@
 {
   "name": "littlebad-bot",
-  "version": "1.0.0",
-  "main": "index.ts",
+  "version": "0.0.7",
   "license": "MIT",
+  "files": [
+    "dist/lib",
+    "dist/es",
+    "dist/typings"
+  ],
+  "module": "dist/es/index.js",
+  "main": "dist/lib/index.js",
+  "typings": "dist/typings/index.d.ts",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LittleBadBad/littlebad-bot.git"
+  },
   "scripts": {
     "start": "ts-node index.ts",
     "prepare": "husky install",

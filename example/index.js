@@ -1,4 +1,4 @@
-const {CallDaddy, createBot, DutyReminder, RedirectBot, SetuBot, ThumbUpBot} = require("./build/lib");
+const {CallDaddy, createBot, DutyReminder, RedirectBot, SetuBot, ThumbUpBot} = require("littlebad-bot");
 
 const nameList = "妍妍\t1287299719\n"
 

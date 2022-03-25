@@ -1498,6 +1498,27 @@ jsqr@^1.4.0:
   resolved "https://registry.yarnpkg.com/jsqr/-/jsqr-1.4.0.tgz#8efb8d0a7cc6863cb6d95116b9069123ce9eb2d1"
   integrity sha512-dxLob7q65Xg2DvstYkRpkYtmKm2sPJ9oFhrhmudT1dZvNFFTlroai3AWSpLey/w5vMcLBXRgOJsbXpdN9HzU/A==
 
+littlebad-bot@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/littlebad-bot/-/littlebad-bot-0.0.2.tgz#467097aefb5b438d37765a2d78bf6418e344a6c7"
+  integrity sha512-P14g1OLqVy9LR9w8YFJ5Q48reLXX3n6LDIgySJ0nJNM5jbh/S+xiu0zK1KaAkO2Ag/iFUeaVANhTHqjRiV4FkQ==
+  dependencies:
+    axios "^0.24.0"
+    node-schedule "^2.1.0"
+    oicq "^2.2.0"
+    qq-guild-bot "^2.9.1"
+
+littlebad-bot@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/littlebad-bot/-/littlebad-bot-0.0.3.tgz#54e21f8b8d9aeaa721749e341f5bcd8edd66c524"
+  integrity sha512-8gnER5FhaNdZOr1cj4oju4AxzGd4X8N2uye2SjMsTvPVmgl9Lyug0gT/m68BYqhIoMmfZYMk2fifEge2bOg67A==
+  dependencies:
+    axios "^0.24.0"
+    littlebad-bot "^0.0.2"
+    node-schedule "^2.1.0"
+    oicq "^2.2.0"
+    qq-guild-bot "^2.9.1"
+
 lodash.debounce@^4.0.8:
   version "4.0.8"
   resolved "https://registry.yarnpkg.com/lodash.debounce/-/lodash.debounce-4.0.8.tgz#82d79bff30a67c4005ffd5e2515300ad9ca4d7af"
