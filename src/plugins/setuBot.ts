@@ -4,7 +4,7 @@ import axios from "axios"
 import {GuildMessageEvent} from "oicq/lib/internal/guild";
 import * as fs from "fs";
 import * as path from "path";
-import {random_item} from "@src/utils";
+import {random_item} from "../utils";
 
 const defaultImg = {
     "code": 200,
