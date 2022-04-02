@@ -23,18 +23,19 @@ export class DutyReminder extends BasePlugin {
     dutyData: string
 
     /**
-     * 1. 设置今日已完成数："设置n", "设置已完成" + 空格 + 数字
-     * 2. 设置第d天： "设置d", "设置天" + 空格 + 数字
+     * 1. 设置今日已完成数："设置n", "完成班数" + 空格 + 数字
+     * 2. 设置第d天： "设置d", "完成天数" + 空格 + 数字
      * 3. 临时添加成员："添加", "添加成员" + 名字 + qq
      * 4. 应用最新值班数据："应用最新"
      * 5. 查看当前值班状态："查看状态", "状态"
      */
-    setN = ["设置n", "设置已完成"]
-    setD = ["设置d", "设置天"]
+    setN = ["设置n", "完成班数"]
+    setD = ["设置d", "完成天数"]
     addMem = ["添加", "添加成员"]
     update = ["应用最新"]
+    cancel = ["取消最新"]
     checkSt = ["查看状态", "状态"]
-    orderKeys = [...this.setN, ...this.setD, ...this.addMem, ...this.update, ...this.checkSt]
+    orderKeys = [...this.setN, ...this.setD, ...this.addMem, ...this.update, ...this.cancel, ...this.checkSt]
 
     orders = [
         this.infoOrder.bind(this),
@@ -179,6 +180,8 @@ export class DutyReminder extends BasePlugin {
                 }
             } else if (this.triggerKey(rawData[0], this.update)) {
                 this.useNew()
+            } else if (this.triggerKey(rawData[0], this.cancel)) {
+                this.newSchedule = {}
             } else if (this.triggerKey(rawData[0], this.setN)) {
                 const [set, n] = rawData
                 this.n = parseInt(n)
@@ -200,7 +203,7 @@ export class DutyReminder extends BasePlugin {
     }
 
     addDuty(e: PrivateMessageEvent, rawData) {
-        if (rawData.every(v => this.config.members.find(v1 => v1.name === v))) {
+        if (rawData.length > 1 && rawData.every(v => this.config.members.find(v1 => v1.name === v))) {
             this.newSchedule.dutyList = this.processList(rawData)
         }
     }
@@ -209,7 +212,7 @@ export class DutyReminder extends BasePlugin {
         const rawMsg = e.raw_message
         let rawData = rawMsg.replace(/"/g, "").split(/[\n\s,，]+/g).filter(v => v !== "")
         this.orders.find(v => v(e, rawData))
-        return this.updateData().then(r => e.reply(`最新${this.getStatus(false)}\n进行中${this.getStatus(true)}\n已完成:${this.n}\n第:${this.day + 1}天`)
+        return this.updateData().then(r => e.reply(`最新${this.getStatus(false)}\n进行中${this.getStatus(true)}\n已完成:${this.n}班\n已完成:${this.day}天`)
             .catch(e => {
                 console.log("[error] DutyReminder onPrivateMsg ", e)
             }))

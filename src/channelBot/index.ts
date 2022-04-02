@@ -84,8 +84,38 @@ class ChannelBot {
         return
     }
 
-    onMessage() {
-
+    onMessage(listener) {
+        this.ws.on("GUILD_MESSAGES", (data) => {
+            const api = this.api
+            const msg = {
+                group: data.msg.channel_id,
+                group_id: data.msg.channel_id,
+                group_name: "",
+                index: data.msg.seq_in_channel,
+                message: data.msg.attachments.map(v => ({type: "image", url: v.url})),
+                message_id: data.msg.id,
+                message_type: "group",
+                post_type: "message",
+                rand: data.msg.edited_timestamp,
+                raw_message: data.msg.content,
+                sender: {
+                    nickname: data.msg.author.username,
+                    user_id: data.msg.author.id
+                },
+                seq: data.msg.seq_in_channel,
+                time: data.msg.timestamp,
+                recall(): Promise<any> {
+                    return api.messageApi.deleteMessage(data.msg.channel_id, data.msg.id);
+                },
+                reply(content: any, quote?: boolean): Promise<any> {
+                    return api.messageApi.postMessage(data.msg.channel_id, {
+                        msg_id: data.msg.id,
+                        content: content
+                    });
+                }
+            }
+            listener(msg)
+        })
     }
 
     on(name: "system.online" |
@@ -97,9 +127,10 @@ class ChannelBot {
             case "system.online":
                 ws.on('READY', listener);
                 break;
-            case "guild.message":
             case "message":
-
+                break;
+            default:
+                break;
         }
     }
 }

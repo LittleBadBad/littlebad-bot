@@ -1,9 +1,10 @@
-import {BasePlugin, SetuConfig} from "../types";
+import {BasePlugin, SetuConfig, WaifuURLs} from "../types";
 import {Client, GroupMessageEvent} from "oicq";
 import axios from "axios"
 import {GuildMessageEvent} from "oicq/lib/internal/guild";
 import * as fs from "fs";
 import * as path from "path";
+import {random_item} from "@src/utils";
 
 const defaultImg = {
     "code": 200,
@@ -37,7 +38,8 @@ export class SetuBot extends BasePlugin {
     config: SetuConfig = {
         lockTime: 60 * 1000,
         maxTime: 5,
-        seseGroups: [949658261, 618572409]
+        seseGroups: [949658261, 618572409],
+        waifuURLs: [WaifuURLs.api_waifu_im, WaifuURLs.waifu_vercel_app]
     }
 
     setu = ["色图", "setu", "涩图", "瑟图", "不能发的"]
@@ -83,8 +85,24 @@ export class SetuBot extends BasePlugin {
         this.config = {...this.config, ...config}
     }
 
-    getRandomImage(nsfw = false, gif = false) {
-        return `https://api.waifu.im/random/?is_nsfw=${nsfw}&gif=${gif}`
+    api_waifu_im(nsfw = false, gif = false) {
+        return axios.get(`https://api.waifu.im/random/?is_nsfw=${nsfw}&gif=${gif}`)
+            .catch(e => ({data: defaultImg}))
+            .then(r => {
+                console.log("img ", r.data)
+                return r.data.images[0].url
+            }).catch(e => "https://cdn.waifu.im/db0e8669c84c6d8a.png")
+    }
+
+    waifu_vercel_app(nsfw = false, gif = false) {
+        const c1 = ["waifu", "neko", "shinobu", "megumin", "bully", "cuddle", "cry", "hug", "awoo", "kiss", "lick", "pat", "smug", "bonk", "yeet", "blush", "smile", "wave", "highfive", "handhold", "nom", "bite", "glomp", "slap", "kill", "kick", "happy", "wink", "poke", "dance", "cringe"]
+        const c2 = ["waifu", "neko", "trap", "blowjob"]
+        return `https://waifu.vercel.app/${nsfw ? 'nsfw' : 'sfw'}/${nsfw ? random_item(c2) : random_item(c1)}`
+    }
+
+    getRandomImageUrl(nsfw = false, gif = false) {
+        return this[random_item(this.config.waifuURLs)](nsfw, gif)
+
     }
 
     isLegitimate(uid, uname, gid) {
@@ -154,12 +172,8 @@ export class SetuBot extends BasePlugin {
                     .catch(e => {
                         console.log("[error] SetuBot onGroupMsg", e)
                     })
-                    .then(() => axios.get(this.getRandomImage(nsfw, gif))
-                        .catch(e => ({data: defaultImg})))
-                    .then(r => {
-                        console.log("img ", r.data)
-                        return r.data.images[0].url
-                    }).then(r => e.reply({
+                    .then(() => this.getRandomImageUrl(nsfw, gif))
+                    .then(r => e.reply({
                         type: "image",
                         file: r
                     })
@@ -169,12 +183,11 @@ export class SetuBot extends BasePlugin {
                             console.log("[error] SetuBot onGroupMsg", e)
                         }))
             } else {
-                return e.reply(`30s内已请求5次，过会再涩`).catch(e => {
+                return e.reply(`30s内已涩了${this.config.maxTime}次了，休息一下再涩`).catch(e => {
                     console.log("[error] SetuBot onGroupMsg", e)
                 })
             }
         }
-
     }
 
     async onGuildMessage(e: GuildMessageEvent) {

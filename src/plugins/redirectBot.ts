@@ -23,7 +23,7 @@ export class RedirectBot extends BasePlugin {
         this.name = config.name || "RedirectBot"
         this.config = {sessionLife: 5 * 60 * 1000, ...config}
         this.msgQueue = []
-        this.replyQueue = []
+        // this.replyQueue = []
         this.reflect = {}
     }
 
@@ -104,7 +104,7 @@ export class RedirectBot extends BasePlugin {
         const reflect = this.reflect
         const session: Redirect = reflect[groupId]
         const expired = session &&/** 存在 */
-            this.replyQueue.indexOf(session.qq) === -1 &&/** 已回复 */
+            // this.replyQueue.indexOf(session.qq) === -1 &&/** 已回复 */
             session.endTime < new Date().getTime() /** 已过期 */
         if (expired) reflect[groupId] = null
         return !session ||/** 空*/
@@ -175,7 +175,8 @@ export class RedirectBot extends BasePlugin {
                 ahuaiMsg: []
             }
         }
-        reflect[gid].endTime = new Date().getTime() + this.config.sessionLife
+        const endTimeNew = new Date().getTime() + (toGroup ? this.config.sessionLife : this.config.sessionLife / 5)
+        if (reflect[gid].endTime < endTimeNew) reflect[gid].endTime = endTimeNew
         if (e && r) {
             toGroup ? reflect[gid].clientMsg.push([
                 e,//私聊消息
@@ -245,9 +246,9 @@ export class RedirectBot extends BasePlugin {
             return this.postToGroup(e, availableGroup)
                 .catch(e => console.log("[error] ", this.name, " onPrivateMsg: ", e))
                 .then(() => {
-                    if (this.replyQueue.indexOf(uid) === -1) {
-                        this.replyQueue.push(uid)
-                    }
+                    // if (this.replyQueue.indexOf(uid) === -1) {
+                    //     this.replyQueue.push(uid)
+                    // }
                     return true
                 })
         } else {
@@ -278,10 +279,10 @@ export class RedirectBot extends BasePlugin {
                 .catch(e => console.log("[error] " + this.name + " onGroupMsg:", e))
                 .then(r => {
                     this.updateSession(gid, uid, e, r, false)
-                    const i = this.replyQueue.findIndex(v => v === uid)
-                    if (i > -1) {
-                        this.replyQueue.splice(i, 1)
-                    }
+                    // const i = this.replyQueue.findIndex(v => v === uid)
+                    // if (i > -1) {
+                    //     this.replyQueue.splice(i, 1)
+                    // }
                 })
         }
         return null

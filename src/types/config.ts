@@ -37,11 +37,17 @@ export interface RedirectConfig extends BasePluginConfig {
     admins: Array<number>
 }
 
+export enum WaifuURLs {
+    api_waifu_im = "api_waifu_im",
+    waifu_vercel_app = "waifu_vercel_app"
+}
+
 export interface SetuConfig extends BasePluginConfig {
-    seseGroups?: Array<number>
+    seseGroups?: number[]
     lockTime?: number
     maxTime?: number
     dataFile?: string
+    waifuURLs?: WaifuURLs[]
 }
 
 export type DutyMember = {

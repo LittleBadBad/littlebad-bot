@@ -18,3 +18,4 @@ lib
 es
 typings
 dist
+/index.ts
