@@ -1,15 +1,19 @@
-import {BasePlugin, Redirect, RedirectConfig, Reflect} from "../types";
-import {DiscussMessageEvent, GroupMessageEvent, PrivateMessageEvent} from "oicq";
+import {BasePlugin, Redirect, RedirectConfig, SessionMap} from "../types";
+import {Client, DiscussMessageEvent, GroupMessageEvent, PrivateMessageEvent} from "oicq";
+import * as fs from "fs";
+import * as path from "path";
 
 export class RedirectBot extends BasePlugin {
 
     config: RedirectConfig
     msgQueue: Array<PrivateMessageEvent | GroupMessageEvent | DiscussMessageEvent>
     replyQueue: Array<number>
-    reflect: Reflect<string> | any
+    sessionMap: SessionMap<string> | any
 
     endSession = ["结束会话", "结束回话", "结束对话"]
     openSession = ["开启会话", "开启回话", "开启对话"]
+
+    mapFile = "session.json"
     orderKeys = [...this.endSession, ...this.openSession]
     name = "RedirectBot"
 
@@ -18,13 +22,38 @@ export class RedirectBot extends BasePlugin {
         this.callStartSession.bind(this)
     ]
 
+    onInstall(client: Client, managers, dataPath) {
+        super.onInstall(client, managers, dataPath);
+        return this.initMap()
+    }
+
+    initMap() {
+        this.sessionMap = {}
+        return fs.promises.mkdir(this.dataPath, {recursive: true})
+            .then(() => fs.promises.readFile(path.join(this.dataPath, this.mapFile)))
+            .then(r => {
+                const sessionMap = JSON.parse(r.toString())
+                for (const key of Object.keys(sessionMap)) {
+                    if (this.config.availableGroups.indexOf(Number(key)) > -1) {
+                        this.sessionMap[key] = sessionMap[key]
+                    }
+                }
+            }).catch(e => {
+                this.sessionMap = {}
+            })
+    }
+
+    updateMap() {
+        return fs.promises
+            .writeFile(path.join(this.dataPath, this.mapFile), JSON.stringify(this.sessionMap))
+            .catch(e => console.log("[error] RedirectBot updateMap", e))
+    }
+
     constructor(config: RedirectConfig) {
         super()
         this.name = config.name || "RedirectBot"
         this.config = {sessionLife: 5 * 60 * 1000, ...config}
         this.msgQueue = []
-        // this.replyQueue = []
-        this.reflect = {}
     }
 
     /**
@@ -47,7 +76,7 @@ export class RedirectBot extends BasePlugin {
         if (this.triggerKey(rawMsg, this.endSession)) {
             this.config.availableGroups.forEach(v => {
                 if (rawMsg.indexOf(String(v)) > -1) {
-                    this.reflect[v] = null
+                    this.sessionMap[v] = null
                 }
             })
         }
@@ -55,7 +84,7 @@ export class RedirectBot extends BasePlugin {
 
     callStartSession(e: GroupMessageEvent) {
         const rawMsg = e.raw_message
-        const reflect = this.reflect
+        const reflect = this.sessionMap
         if (this.triggerKey(rawMsg, this.openSession)) {
             const [create, uid] = rawMsg.split(/[\s]+/g), uid1 = parseInt(uid)
             if (e.group && uid) {
@@ -67,7 +96,7 @@ export class RedirectBot extends BasePlugin {
                     }
                 }
                 if (!flag) {
-                    this.reflect[e.group.group_id] = null
+                    this.sessionMap[e.group.group_id] = null
                     this.updateSession(e.group.group_id, uid1)
                 }
             }
@@ -80,7 +109,7 @@ export class RedirectBot extends BasePlugin {
      * 寻找可用聊天群
      */
     findAvailableGroup(uid): number {
-        const reflect = this.reflect
+        const reflect = this.sessionMap
         for (let groupId of this.config.availableGroups) {
             const session: Redirect = reflect[groupId]
             if (uid === session?.qq) {
@@ -101,21 +130,40 @@ export class RedirectBot extends BasePlugin {
      * @param groupId
      */
     isGroupFree(groupId) {
-        const reflect = this.reflect
+        const reflect = this.sessionMap
         const session: Redirect = reflect[groupId]
         const expired = session &&/** 存在 */
             // this.replyQueue.indexOf(session.qq) === -1 &&/** 已回复 */
             session.endTime < new Date().getTime() /** 已过期 */
         if (expired) reflect[groupId] = null
         return !session ||/** 空*/
-            expired/** 已回复且过期*/
+            expired/** 已过期*/
     }
 
-    getQuoteMsg(msgs: Array<Array<PrivateMessageEvent | GroupMessageEvent | any>>, quote: PrivateMessageEvent | GroupMessageEvent | any) {
-        if (msgs && msgs.length && quote) {
-            const m = msgs.find(v => v[1].rand === quote.rand && v[1].time === quote.time)
-            return m ? m[0] : null
+    getQuoteMsg(pool: (PrivateMessageEvent | GroupMessageEvent | any)[][], quote: PrivateMessageEvent | GroupMessageEvent | any, toGroup = true) {
+        if (pool && pool.length && quote) {
+            for (const v of pool) {
+                const [pr, gr] = v
+                if (toGroup) {
+                    if (pr.rand === quote.rand && pr.time === quote.time) {
+                        return {
+                            ...gr,
+                            message: pr.message || gr.message,
+                            user_id:pr.user_id || gr.user_id,
+                        }
+                    }
+                } else {
+                    if (gr.rand === quote.rand && gr.time === quote.time) {
+                        return {
+                            ...pr,
+                            message: pr.message || gr.message,
+                            user_id:pr.user_id || gr.user_id,
+                        }
+                    }
+                }
+            }
         }
+        return null
     }
 
     postMsqQueue(e) {
@@ -149,43 +197,36 @@ export class RedirectBot extends BasePlugin {
     }
 
     async forwardMsg(gid, uid, e, toGroup) {
-        const reflect: Reflect<number> = this.reflect
+        const reflect: SessionMap<number> = this.sessionMap
         const client = this.client
         const session = reflect[gid]
-        const quote = this.getQuoteMsg(session ? session[toGroup ? "ahuaiMsg" : "clientMsg"] : [], e.source)
-        if (quote) {
-            if (!toGroup) {
-                e.message.forEach((v, i) => {
-                    if (v.type === "at") {
-                        e.message.splice(i, 1)
-                    }
-                })
-            }
+        const quote = this.getQuoteMsg(session ? session.msgPool : [], e.source, toGroup)
+        e.message = e.message.filter(v => v.type !== "at")
+        if (quote && quote.reply) {
             return quote.reply(e.message, true)
         }
-        return toGroup ? client.sendGroupMsg(gid, e.message) : client.sendPrivateMsg(uid, e.message)
+        return toGroup ? client.sendGroupMsg(gid, e.message, quote) : client.sendPrivateMsg(uid, e.message, quote)
     }
 
-    updateSession(gid, uid, e = null, r = null, toGroup = true) {
-        const reflect: Reflect<number> = this.reflect
+    updateSession(gid, uid, source = null, forwardRes = null, toGroup = true) {
+        const reflect: SessionMap<number> = this.sessionMap
         if (!reflect[gid]) {
             reflect[gid] = {
                 qq: uid,
-                clientMsg: [],
-                ahuaiMsg: []
+                msgPool: []
             }
         }
         const endTimeNew = new Date().getTime() + (toGroup ? this.config.sessionLife : this.config.sessionLife / 5)
-        if (reflect[gid].endTime < endTimeNew) reflect[gid].endTime = endTimeNew
-        if (e && r) {
-            toGroup ? reflect[gid].clientMsg.push([
-                e,//私聊消息
-                r//群消息
-            ]) : reflect[gid].ahuaiMsg.push([
-                e,//群消息
-                r//私聊消息
-            ])
+        if (!reflect[gid].endTime || reflect[gid].endTime < endTimeNew) reflect[gid].endTime = endTimeNew
+        if (source && forwardRes) {
+            if (toGroup) {
+                //[private, group]
+                reflect[gid].msgPool.push([source, forwardRes])
+            } else {
+                reflect[gid].msgPool.push([forwardRes, source])
+            }
         }
+        return this.updateMap()
     }
 
     /** 转发消息
@@ -198,7 +239,7 @@ export class RedirectBot extends BasePlugin {
      */
     postToGroup(e, groupId) {
         const client = this.client
-        const reflect: Reflect<number> = this.reflect
+        const reflect: SessionMap<number> = this.sessionMap
         const uid = e.sender.user_id
         const avatarUrl = client.pickUser(uid).getAvatarUrl(40)
         const operations = [client.setGroupName(groupId, e.sender.nickname)
@@ -272,18 +313,12 @@ export class RedirectBot extends BasePlugin {
 
     async onGroupMsg(e) {
         const gid = e.group.group_id
-        const reflect: Reflect<number> = this.reflect
+        const reflect: SessionMap<number> = this.sessionMap
         const uid = reflect[gid]?.qq
         if (uid) {
             return this.forwardMsg(gid, uid, e, false)
                 .catch(e => console.log("[error] " + this.name + " onGroupMsg:", e))
-                .then(r => {
-                    this.updateSession(gid, uid, e, r, false)
-                    // const i = this.replyQueue.findIndex(v => v === uid)
-                    // if (i > -1) {
-                    //     this.replyQueue.splice(i, 1)
-                    // }
-                })
+                .then(r => this.updateSession(gid, uid, e, r, false))
         }
         return null
     }
