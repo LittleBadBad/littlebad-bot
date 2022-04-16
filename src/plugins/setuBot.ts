@@ -96,13 +96,12 @@ export class SetuBot extends BasePlugin {
 
     waifu_vercel_app(nsfw = false, gif = false) {
         const c1 = ["waifu", "neko", "shinobu", "megumin", "bully", "cuddle", "cry", "hug", "awoo", "kiss", "lick", "pat", "smug", "bonk", "yeet", "blush", "smile", "wave", "highfive", "handhold", "nom", "bite", "glomp", "slap", "kill", "kick", "happy", "wink", "poke", "dance", "cringe"]
-        const c2 = ["waifu", "neko", "trap", "blowjob"]
+        const c2 = ["waifu", "neko", "blowjob"]
         return `https://waifu.vercel.app/${nsfw ? 'nsfw' : 'sfw'}/${nsfw ? random_item(c2) : random_item(c1)}`
     }
 
     getRandomImageUrl(nsfw = false, gif = false) {
         return this[random_item(this.config.waifuURLs)](nsfw, gif)
-
     }
 
     isLegitimate(uid, uname, gid) {

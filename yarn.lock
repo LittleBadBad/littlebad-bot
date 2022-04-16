@@ -1573,6 +1573,18 @@ ms@^2.1.1:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz#574c8138ce1d2b5861f0b44579dbadd60c6615b2"
   integrity sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==
 
+multi-munkres@^0.0.12:
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/multi-munkres/-/multi-munkres-0.0.12.tgz#a12f3c859cb627dd48518fd9a017bb8f12b2e1a0"
+  integrity sha512-HrE08PXkev9whpplC2tSawOTZ7kd1CT8j6V8DrfI2W0gJRcTm33iEzu3vD1W4qQSs7l1pmi1zQOdvyIHGrbZsg==
+  dependencies:
+    munkres-js "^1.2.2"
+
+munkres-js@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/munkres-js/-/munkres-js-1.2.2.tgz#e03d98068d45d587b15f563eb860eb67aa8528b7"
+  integrity sha1-4D2YBo1F1YexX1Y+uGDrZ6qFKLc=
+
 needle@^2.5.2:
   version "2.9.1"
   resolved "https://registry.yarnpkg.com/needle/-/needle-2.9.1.tgz#22d1dffbe3490c2b83e301f7709b6736cd8f2684"

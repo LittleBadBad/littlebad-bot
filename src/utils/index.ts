@@ -128,16 +128,6 @@ export async function reliableDo(callback: () => any, retry = 5) {
 
 const allColor = []
 
-// function initColor() {
-//     for (const c in colors) {
-//         for (const cKey in colors[c]) {
-//             allColor.push(colors[c][cKey])
-//         }
-//     }
-// }
-
-// initColor()
-
 export function hexToRgb(hex) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {

@@ -79,12 +79,13 @@ export class DutyReminder extends BasePlugin {
         const rawData = rawMsg.replace(/"/g, "").split(/[\n\s,，]+/g).filter(v => v !== "")
         return (this.triggerKey(rawData[0], this.orderKeys) ||
                 rawData.find(v => this.config.members.find(v1 => v1.name === v) || /^([0-1]?[0-9]|2[0-3])[:：][0-5][0-9]$/g.test(v))) &&
-            (this.config.manager.indexOf(e.sender.user_id) > -1 || this.managers.indexOf(e.sender.user_id) > -1)
+            this.managers.indexOf(e.sender.user_id) > -1
     }
 
     constructor(config: DutyConfig) {
         super();
         this.config = config
+        this.managers.push(...this.config.managers)
     }
 
     processList(dutyList) {
@@ -118,7 +119,7 @@ export class DutyReminder extends BasePlugin {
             })
         } else {
             if (name !== "没人") {
-                this.client.sendPrivateMsg(this.config.manager[0], `未找到 ${name} 的qq号，发送指令：添加 昵称 qq号 既可以录入新的值班成员`).catch(e => {
+                this.client.sendPrivateMsg(this.config.managers[0], `未找到 ${name} 的qq号，发送指令：添加 昵称 qq号 既可以录入新的值班成员`).catch(e => {
                     console.log("[error] DutyReminder callForDuty ", e)
                 })
             }

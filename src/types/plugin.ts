@@ -67,7 +67,7 @@ export class BasePlugin implements Plugin {
      */
     onInstall(client: Client, managers, dataPath) {
         this.client = client
-        this.managers = managers
+        this.managers.push(...managers)
         this.dataPath = path.join(dataPath, this.name)
     }
 

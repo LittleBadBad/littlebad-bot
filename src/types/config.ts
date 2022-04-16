@@ -58,5 +58,5 @@ export type DutyMember = {
 export interface DutyConfig extends BasePluginConfig {
     dutyName: string
     members: DutyMember[]
-    manager: number[]
+    managers: number[]
 }

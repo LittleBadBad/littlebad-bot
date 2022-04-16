@@ -19,3 +19,5 @@ es
 typings
 dist
 /index.ts
+
+src/plugins/queryPhone.ts
