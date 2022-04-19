@@ -92,8 +92,15 @@ export class DutySchedule extends BasePlugin {
          */
         (e: PrivateMessageEvent) => {
             if (this.triggerKey(e.raw_message, this.publish) && this.managers.find(v => e.sender.user_id === v)) {
-                return this.members.filter(v=>!v.submit).map(v => this.client.sendPrivateMsg(
-                    v.uid, `点击${addVacant(this.chartTemplate, v)}，填写空闲时间并复制，发送 空闲表 内容 即可录入空闲时间`))
+                const [publish, content] = e.raw_message.split(/[\n\s]+/).filter(v => v !== "")
+                return this.members.filter(v => !v.submit).map(v => this.client.sendPrivateMsg(
+                    v.uid, {
+                        title: "填写空闲表",
+                        type: "share",
+                        image: 'https://n.sinaimg.cn/sinakd20220415ac/700/w790h710/20220415/7860-f4f3a65866f6fbd2745217babb035c2b.jpg',
+                        url: addVacant(this.chartTemplate, v),
+                        content: `发送 空闲表 内容 即可录入空闲时间\n示例：空闲表 blablabla`
+                    }).then(_ => this.client.sendPrivateMsg(v.uid, content)))
             }
         },
         /**
@@ -120,16 +127,34 @@ export class DutySchedule extends BasePlugin {
                         if (!member.name || !member.maxDuty || !member.vacant) {
                             throw Error("")
                         }
-                        u.maxDuty = member.maxDuty
-                        u.name = member.name
-                        u.vacant = member.vacant
-                        u.submit = true
-                        event.reply(`提交结果：${addVacant(this.chartTemplate, u)}`)
+                        const u1 = this.members.find(v => v.name === member.name)
+                        u1.maxDuty = member.maxDuty
+                        u1.vacant = member.vacant
+                        u1.submit = true
+                        event.reply({
+                            title: "提交结果",
+                            type: "share",
+                            image: 'https://n.sinaimg.cn/sinakd20220415ac/700/w790h710/20220415/7860-f4f3a65866f6fbd2745217babb035c2b.jpg',
+                            url: addVacant(this.chartTemplate, u1),
+                            content: `点击查看`
+                        })
                     } catch (e) {
-                        event.reply(`数据格式错误，打开 ${addVacant(this.chartTemplate, u)} 创建并复制内容，发送 ${vacant} 内容 即可录入空闲时间`)
+                        event.reply({
+                            title: "数据格式错误",
+                            type: "share",
+                            image: 'https://n.sinaimg.cn/sinakd20220415ac/700/w790h710/20220415/7860-f4f3a65866f6fbd2745217babb035c2b.jpg',
+                            url: addVacant(this.chartTemplate, u),
+                            content: `数据格式错误，点击创建并复制内容，发送 ${vacant} 内容 即可录入空闲时间\n示例：空闲表 {blablabla}`
+                        })
                     }
                 } else {
-                    event.reply(`打开 ${addVacant(this.chartTemplate, u)} 创建并复制内容，发送 ${vacant} 内容 即可录入空闲时间`)
+                    event.reply({
+                        title: "填写空闲表",
+                        type: "share",
+                        image: 'https://n.sinaimg.cn/sinakd20220415ac/700/w790h710/20220415/7860-f4f3a65866f6fbd2745217babb035c2b.jpg',
+                        url: addVacant(this.chartTemplate, u),
+                        content: `点击填写空闲时间并复制，发送 ${vacant} 内容 即可录入空闲时间\n示例：空闲表 {blablabla}`
+                    })
                 }
                 return true
             }
@@ -145,10 +170,14 @@ export class DutySchedule extends BasePlugin {
                 const res = multiMunkres(this.chartTemplate.template,
                     submit.map(v => v.vacant),
                     submit.map(v => v.maxDuty)).map(v => v.map(v1 => this.members[v1].name))
-                return e.reply(`排班结果：${result(this.chartTemplate, res)}`)
+                return e.reply({
+                    title: "排班结果",
+                    type: "share",
+                    image: 'https://n.sinaimg.cn/sinakd20220415ac/700/w790h710/20220415/7860-f4f3a65866f6fbd2745217babb035c2b.jpg',
+                    url: result(this.chartTemplate, res),
+                    content: `排班结果`
+                })
             }
         }
     ]
-
-
 }
