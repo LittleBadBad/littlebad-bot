@@ -141,3 +141,30 @@ export function getRandomColor() {
     const c = "ff" + random_item(allColor).replace("#", "")
     return parseInt(c, 16)
 }
+
+export function IsJsonString(str) {
+    try {
+        const json = JSON.parse(str);
+        return (typeof json === 'object' && !Array.isArray(json));
+    } catch (e) {
+        return false;
+    }
+}
+
+export function promiseDelay(fn: () => Promise<any>, time = 1000) {
+    return fn().finally(() => new Promise<void>(resolve => setTimeout(() => resolve(), time)))
+}
+
+export async function promiseInSeq(arr: (() => Promise<any>)[]) {
+    const res = []
+    for (let fn of arr) {
+        try {
+            const data = await promiseDelay(fn);
+            res.push(data)
+        } catch (e) {
+            res.push(e)
+            console.log(e)
+        }
+    }
+    return res;
+}

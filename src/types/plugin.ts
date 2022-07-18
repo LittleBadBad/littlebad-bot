@@ -1,7 +1,7 @@
 import {DiscussMessageEvent, GroupMessageEvent, PrivateMessageEvent} from "oicq/lib/events";
 import {GuildMessageEvent} from "oicq/lib/internal/guild";
 import {Client} from "oicq";
-import path from "path";
+import * as path from "path";
 
 interface Plugin {
     onStart()
@@ -25,7 +25,7 @@ export class BasePlugin implements Plugin {
     name: string = "BasePlugin"
 
     /**
-     * 本插件的文件路径，默认在安装后，值为${主机器人的文件路径}/${本插件的名字}
+     * 本插件的文件路径名（需要手动创建文件夹），默认在安装后，值为${主机器人的文件路径}/${本插件的名字}
      */
     dataPath: string = ""
 
@@ -57,6 +57,14 @@ export class BasePlugin implements Plugin {
      */
     triggerKey(raw: string, keyList: string[]) {
         return keyList.find(v => raw.toLowerCase().indexOf(v) > -1)
+    }
+
+    matchOrder(raw: string, keyList: string[]) {
+        return keyList.find(v => raw.toLowerCase().indexOf(v) === 0)
+    }
+
+    isManager(e) {
+        return !!this.managers.find(v => e.sender.user_id === v)
     }
 
     /**

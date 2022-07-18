@@ -1,9 +1,9 @@
 import {BasePlugin, DutyConfig} from "../types";
 import {Client, PrivateMessageEvent} from "oicq";
 import {parseTime} from "../utils";
-import schedule from 'node-schedule'
-import fs from "fs";
-import path from "path";
+import * as schedule from 'node-schedule'
+import * as fs from "fs";
+import * as path from "path";
 
 type Schedule = {
     dutyList?: string[]
@@ -143,8 +143,8 @@ export class DutyReminder extends BasePlugin {
     }
 
     startDuty() {
-        const time = parseTime(new Date(), '{h}:{i}')
-        const i = this.inSchedule?.timeList?.findIndex(v => v === time)
+        const time = parseTime(new Date(), '{h}:')
+        const i = this.inSchedule?.timeList?.findIndex(v => new RegExp(time).test(v))
         if (i === this.n) {
             const index = this.n + this.day * this.inSchedule.timeList.length
             this.n++
@@ -159,6 +159,7 @@ export class DutyReminder extends BasePlugin {
         super.onStart();
         this.inSchedule.dutyList = this.processList(this.inSchedule.dutyList)
         schedule.scheduleJob('0 0 0 * * *', this.refreshBackend.bind(this))
+        this.startDuty()
         setInterval(this.startDuty.bind(this), 60 * 1000)
     }
 
@@ -190,6 +191,7 @@ export class DutyReminder extends BasePlugin {
                 const [set, d] = rawData
                 this.day = parseInt(d)
             }
+            this.updateData()
         }
     }
 

@@ -1,3 +1,5 @@
+import {Config} from "oicq/lib/client";
+
 export interface QQBotConfig {
     /**
      * 机器人QQ号
@@ -5,6 +7,9 @@ export interface QQBotConfig {
     qq: number
     managers: number[]
     dataPath?: string
+    password?: string
+
+    others?: Config
 }
 
 export interface GuildBotConfig {

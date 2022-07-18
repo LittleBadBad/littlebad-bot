@@ -21,3 +21,5 @@ dist
 /index.ts
 
 src/plugins/queryPhone.ts
+/test.ts
+/index/
