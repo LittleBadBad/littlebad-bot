@@ -73,13 +73,13 @@ export default class oicqBot {
                 //扫码后按回车登录
                 console.log(e, "输入ticket：")
                 this.onError(e)
-                // process.stdin.once("data", ticket => client.submitSlider(String(ticket).trim()))
+                process.stdin.once("data", ticket => client.submitSlider(String(ticket).trim()))
             }).on("system.login.device", e => {
                 console.log("system.login.device", e)
                 this.onError(e)
-                // process.stdin.once("data", () => {
-                //     this.login()
-                // })
+                process.stdin.once("data", () => {
+                    client.login()
+                })
             }).login(this.config.password) :
             client.on("system.login.qrcode", e => {
                 //扫码后按回车登录

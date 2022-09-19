@@ -187,6 +187,7 @@ export class DutySchedule extends BasePlugin {
                     )).then(_ => content !== "" ? this.client.sendTempMsg(593070461, v.uid, content) : undefined)))
             }
         },
+
         /**
          * 查看空闲表提交状态
          * @param e
