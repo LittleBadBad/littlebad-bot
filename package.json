@@ -1,6 +1,6 @@
 {
   "name": "littlebad-bot",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "license": "MIT",
   "files": [
     "dist/lib",
@@ -18,7 +18,7 @@
     "url": "https://github.com/LittleBadBad/littlebad-bot.git"
   },
   "scripts": {
-    "start": "node index",
+    "start": "ts-node index.ts",
     "prepare": "husky install",
     "dev": "ts-node index.ts",
     "build": "npm run clean &cross-env NODE_ENV=production rollup -c rollup.config.js",

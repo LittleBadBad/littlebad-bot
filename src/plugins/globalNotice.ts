@@ -1,6 +1,9 @@
 import {BasePlugin, DutyMember} from "../types";
 import {promiseInSeq} from "../utils";
 
+/**
+ * @deprecated
+ */
 export class GlobalNotice extends BasePlugin {
     name = "GlobalNotice"
     members: DutyMember[]

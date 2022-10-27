@@ -53,44 +53,61 @@ export default class oicqBot {
         })
         client.on("system.online", () => {
             console.log("Logged in!")
-        })
-
-        client.on("message", (e: any) => {
+        }).on("message", (e: any) => {
             const orderPlugin = this.plugins.find(v => v.isOrder(e))
             orderPlugin ? orderPlugin.onOrder(e)
                     .catch(err => console.log("[error] oicqBot onOrder ", err)) :
                 Promise.all(this.plugins.map(v => v.onMessage(e)))
                     .catch(err => console.log("[error] oicqBot onMessage ", err))
-        })
+        }).on("guild.message", e => {
 
-        client.on("guild.message", e => {
             Promise.all(this.plugins.map(v => v.onGuildMessage(e)))
                 .catch(err => console.log("[error] oicqBot onMessage ", err))
+
+        }).on("system.offline", e => {
+            this.onError(e)
         })
 
-        this.config.password ?
+
+        return new Promise((resolve, reject) => {
+            const status = {cancel: false}
+            client.login()
             client.on("system.login.slider", e => {
-                //扫码后按回车登录
-                console.log(e, "输入ticket：")
-                this.onError(e)
-                process.stdin.once("data", ticket => client.submitSlider(String(ticket).trim()))
+                if (!status.cancel) {
+                    //扫码后按回车登录
+                    console.log(e, "输入ticket：")
+                    process.stdin.once("data", ticket => {
+                        client.submitSlider(String(ticket).trim())
+                    })
+                }
             }).on("system.login.device", e => {
-                console.log("system.login.device", e)
-                this.onError(e)
-                process.stdin.once("data", () => {
-                    client.login()
-                })
-            }).login(this.config.password) :
-            client.on("system.login.qrcode", e => {
+                if (!status.cancel) {
+                    console.log("system.login.device", e)
+                    process.stdin.once("data", () => {
+                        client.login()
+                    })
+                }
+            }).on("system.login.qrcode", e => {
                 //扫码后按回车登录
-                console.log(e)
-                this.onError(e)
-                // process.stdin.once("data", () => {
-                //     this.login()
-                // })
-            }).login()
-        client.on("system.offline.kickoff", e => {
-            this.onError(e)
+                if (!status.cancel) {
+                    console.log(e, "扫码后按回车登录")
+                    process.stdin.once("data", () => {
+                        client.login()
+                    })
+                }
+            }).on("system.online", e => {
+                resolve(true)
+            }).on("system.login.error", e => {
+                console.log("system.login.error", e)
+            })
+            process.stdin.once("data", line => {
+                if (line.toString().trim() === "n") {
+                    status.cancel = true
+                    reject(false)
+                }
+            })
+        }).catch(e => {
+            console.log("取消" + this.config.qq + "登录")
         })
     }
 }

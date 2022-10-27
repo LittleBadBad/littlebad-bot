@@ -1,7 +1,7 @@
 import {BasePlugin, DutyMember} from "../types";
 import {PrivateMessageEvent} from "oicq/lib/events";
 import {multiMunkres} from "multi-munkres";
-import {IsJsonString, promiseInSeq} from "../utils";
+import {IsJsonString} from "../utils";
 import {Client, segment} from "oicq";
 import * as fs from "fs";
 import * as path from "path";
@@ -137,6 +137,12 @@ export class DutySchedule extends BasePlugin {
     orders = [
         /**
          * 创建排班模板
+         * 命令格式：json串 或 创建值班+json串
+         *
+         * 权限：管理员
+         *
+         * 返回：成功：提交结果链接；失败：创建值班链接
+         * @see create
          * @param e
          */
         (e: PrivateMessageEvent) => {
@@ -170,23 +176,24 @@ export class DutySchedule extends BasePlugin {
             }
         },
 
-        /**
-         * 发布排班
-         * @param e
-         */
-        (e: PrivateMessageEvent) => {
-            if (this.triggerKey(e.raw_message, this.publish) && this.managers.find(v => e.sender.user_id === v)) {
-                const [publish] = e.raw_message.split(/[\n\s]+/).filter(v => v !== "")
-                const content = e.raw_message.replace(publish, "")
-                return promiseInSeq(this.members.filter(v => isExpire(v.submit)).map(v => async () => await this.client.sendTempMsg(593070461,
-                    v.uid, segment.share(
-                        addVacant(this.chartTemplate, v),
-                        "填写空闲表",
-                        INFO,
-                        `发送 空闲表 空格 内容 或 直接粘贴内容 即可录入空闲时间`
-                    )).then(_ => content !== "" ? this.client.sendTempMsg(593070461, v.uid, content) : undefined)))
-            }
-        },
+        // /**
+        //  * 发布排班
+        //  * @param e
+        //  * @deprecated
+        //  */
+        // (e: PrivateMessageEvent) => {
+        //     if (this.triggerKey(e.raw_message, this.publish) && this.managers.find(v => e.sender.user_id === v)) {
+        //         const [publish] = e.raw_message.split(/[\n\s]+/).filter(v => v !== "")
+        //         const content = e.raw_message.replace(publish, "")
+        //         return promiseInSeq(this.members.filter(v => isExpire(v.submit)).map(v => async () => await this.client.sendTempMsg(593070461,
+        //             v.uid, segment.share(
+        //                 addVacant(this.chartTemplate, v),
+        //                 "填写空闲表",
+        //                 INFO,
+        //                 `发送 空闲表 空格 内容 或 直接粘贴内容 即可录入空闲时间`
+        //             )).then(_ => content !== "" ? this.client.sendTempMsg(593070461, v.uid, content) : undefined)))
+        //     }
+        // },
 
         /**
          * 查看空闲表提交状态
@@ -245,7 +252,7 @@ export class DutySchedule extends BasePlugin {
                         addVacant(this.chartTemplate, u),
                         "提交空闲表",
                         INFO,
-                        `点击创建并复制内容，发送 ${vacant} 内容 即可录入空闲时间`
+                        `1. 点击创建；2.复制内容；3.发送复制的${vacant}内容 即可录入空闲时间`
                     ))
                 }
             }
